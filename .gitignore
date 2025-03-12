@@ -9,6 +9,6 @@ node_modules/
 frontend/node_modules/
 # Virtual environments
 .venv
-
+.env
 # baml
 baml_client
