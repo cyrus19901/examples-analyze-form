@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@boundaryml/baml": "^0.78.0",
+    "@radix-ui/react-toast": "^1.2.6",
+    "recharts": "^2.15.1",
+    "xlsx": "^0.18.5"
+  }
+}

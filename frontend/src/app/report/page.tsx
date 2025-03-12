@@ -55,11 +55,7 @@ const ReportContent = () => {
           <p className="text-center text-gray-500">Processing Image...</p>
         ) : analysisData ? (
           <AnalysisGraph
-            formulas={analysisData.formulas}
-            keyAssumptions={analysisData.keyAssumptions}
-            metricType={analysisData.metric_type}
-            monthlyMetrics={analysisData.monthlyMetrics}
-            proformaMetrics={analysisData.proformaMetrics}
+            financialData={analysisData}
           />
         ) : (
           <p className="text-center text-gray-500">No data available</p>
