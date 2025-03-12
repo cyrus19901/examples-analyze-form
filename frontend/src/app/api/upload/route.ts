@@ -17,7 +17,6 @@ export async function POST(req: Request) {
 
     // Define file path in /public/uploads
     const filePath = path.join(process.cwd(), "public/uploads", file.name);
-    console.log(filePath)
     // Save the file
     await writeFile(filePath, buffer);
     console.log(`File saved: ${filePath}`);

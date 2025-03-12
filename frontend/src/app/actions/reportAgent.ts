@@ -4,54 +4,38 @@ import { b } from "../../baml_client";
 
 import { Image } from "@boundaryml/baml";
 import { Analysis } from "../../baml_client";
-// Function to get missing parameters from an analysis
-function getMissingParams(analysis: Analysis): string[] {
-  const validParams: Set<string> = new Set(Object.keys(analysis.keyAssumptions));
+import path from "path";
 
-  for (const formula of analysis.formulas) {
-    validParams.add(formula.name);
-  }
-
-  const missingParams: string[] = [];
-
-  for (const formula of analysis.formulas) {
-    for (const param of formula.parameters) {
-      if (!validParams.has(param)) {
-        missingParams.push(param);
-      }
+async function fixMissingParams(analysis: Analysis): Promise<Analysis> {
+    const missingParams: string[] = [];
+    for (const formula of analysis.formulas) {
+        for (const param of formula.parameters) {
+            if (!(param in analysis.keyAssumptions)) {
+                missingParams.push(param);
+            }
+        }
     }
-  }
 
-  return missingParams;
+    if (missingParams.length > 0) {
+        const missingFormulas = await b.GetMissingParams(missingParams, analysis); // ✅ Correctly typed `MissingParam[]`
+
+        // for (const param of missingParams) {
+        //     if (!missingFormulas.find((f) => f.name === param)) { // ✅ Fixed condition
+        //         throw new Error(`Could not find formula for parameter ${param}`);
+        //     }
+        // }
+        const extractedFormulas = missingFormulas.map((f) => f.formula);
+        analysis.formulas.push(...extractedFormulas);
+    }
+
+    return analysis;
 }
 
-// Function to process an image and analyze it using BAML
-export async function reportAgent(): Promise<Analysis> {
-  console.log(b)
-  let analysis: Analysis = await b.AnalyzeProforma(Image.fromUrl("https://i.imgur.com/9CYdOda.png"));
-  let maxTries = 5;
-  let missingParams = getMissingParams(analysis);
-
-  while (missingParams.length > 0 && maxTries > 0) {
-    maxTries--;
-    console.log(`Missing parameters: ${missingParams}`);
-
-    const newFormulas = await b.GetMissingParams(missingParams, analysis);
-
-    for (const formula of newFormulas) {
-      formula.formula.name = formula.name;
-      analysis.formulas.push(formula.formula);
-    }
-
-    missingParams = getMissingParams(analysis);
-  }
-
-  if (missingParams.length > 0) {
-    console.log(`Still missing parameters: ${missingParams}`);
-    console.log("Please provide the missing parameters with user input.");
-  }
-  console.log(analysis.keyAssumptions)
-  console.log(analysis.proformaMetrics)
-  console.log(analysis.formulas)
-  return analysis;
+export async function analyzeImage(imageUrl: string): Promise<Analysis> {
+    const absolutePath = imageUrl.startsWith("/uploads")
+      ? path.join(process.cwd(), "public", imageUrl)
+      : imageUrl;
+    let analysis: Analysis = await b.AnalyzeProforma(Image.fromUrl("https://i.imgur.com/3oaXdnI.png"));
+    analysis = await fixMissingParams(analysis);
+    return analysis;
 }
